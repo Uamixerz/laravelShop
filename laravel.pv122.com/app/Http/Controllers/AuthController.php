@@ -7,6 +7,8 @@ use App\Models\User;
 use Validator;
 use Symfony\Component\HttpFoundation\Response;
 
+use Storage;
+
 class AuthController extends Controller
 {
     public function __construct() {
@@ -80,85 +82,73 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/api/auth/register",
-     *   tags={"Auth"},
-     *   summary="Register",
-     *   operationId="register",
-     *
-     *  @OA\Parameter(
-     *      name="name",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *           type="string"
-     *      )
-     *   ),
-     *  @OA\Parameter(
-     *      name="email",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *           type="string"
-     *      )
-     *   ),
-     *   @OA\Parameter(
-     *      name="password",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *           type="string"
-     *      )
-     *   ),
-     *      @OA\Parameter(
-     *      name="password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *           type="string"
-     *      )
-     *   ),
-     *   @OA\Response(
-     *      response=201,
-     *       description="Success",
-     *      @OA\MediaType(
-     *           mediaType="application/json",
-     *      )
-     *   ),
-     *   @OA\Response(
-     *      response=401,
-     *       description="Unauthenticated"
-     *   ),
-     *   @OA\Response(
-     *      response=400,
-     *      description="Bad Request Закушуємо нормально"
-     *   ),
-     *   @OA\Response(
-     *      response=404,
-     *      description="not found"
-     *   ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden"
-     *      )
-     *)
-     **/
+     *     tags={"Auth"},
+     *     path="/api/auth/register",
+     *     @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"email", "lastName", "name", "phone", "image", "password", "confirmPassword"},
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="string",
+     *                     format="binary"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="email",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="lastName",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="phone",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="password",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="confirmPassword",
+     *                     type="string"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="200", description="Add Category.")
+     * )
+     */
 
 
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|confirmed|min:6',
+            'password' => 'required|string|min:6',
+            'phone' => 'required|string|max:40',
+            'image' => 'required|image|max:4096', // Assuming photo is uploaded as an image file
+            'lastName' => 'required|string|max:100',
         ]);
-
+        $failsAll = $validator->errors()->toJson();
         if($validator->fails()){
             return response()->json($validator->errors()->toJson(), Response::HTTP_BAD_REQUEST);
         }
 
+        $filename = uniqid(). '.' .$request->file("image")->getClientOriginalExtension();
+        Storage::disk('local')->put("public/uploads/".$filename,file_get_contents($request->file("image")));
+
         $user = User::create(array_merge(
             $validator->validated(),
-            ['password' => bcrypt($request->password)]
+            ['password' => bcrypt($request->password), 'image'=> $filename]
         ));
+
+
 
         return response()->json([
             'message' => 'User successfully registered',

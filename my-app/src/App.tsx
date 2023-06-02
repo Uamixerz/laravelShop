@@ -8,6 +8,7 @@ import {Route, Routes } from 'react-router-dom';
 import DefaultLayout from './components/containers/default/DefaultLayout';
 import CategoryEditPage from './components/containers/category/edit/CategoryEditPage';
 import LoginPage from './components/auth/login/LoginPage';
+import RegisterPage from './components/auth/register/RegisterPage';
 function App() {
   return (
     <>
@@ -18,6 +19,7 @@ function App() {
           <Route path='categories/create' element={<CategoryCreatePage/>}/>
           <Route path='categories/edit' element={<CategoryEditPage/>}/>
           <Route path='login' element={<LoginPage/>}/>
+          <Route path='register' element={<RegisterPage/>}/>
         </Route>
       </Routes>
       

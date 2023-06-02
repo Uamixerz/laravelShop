@@ -30,7 +30,7 @@ const LoginPage = () => {
             setMessage("");
             navigator("/");
         }
-        catch (error) {
+        catch (error) { 
             setMessage("Не вірно вказані данні");
             console.log("error: " + error);
         }
