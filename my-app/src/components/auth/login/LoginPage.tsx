@@ -1,14 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { ILogin } from "./types";
+import { ILogin, ILoginResult } from "./types";
 import * as yup from "yup";
 import { useFormik } from "formik";
 import classNames from "classnames";
 import http from "../../../http";
 import { useState } from "react";
+import { AuthUserActionType, IUser } from "../types";
+import { useDispatch } from "react-redux";
+import jwtDecode from "jwt-decode";
+
 
 const LoginPage = () => {
     const navigator = useNavigate();
-
+    const dispatch = useDispatch();
     const initValues: ILogin = {
         email: "",
         password: "",
@@ -25,12 +29,24 @@ const LoginPage = () => {
 
     const onSubmitFormikData = async (values: ILogin) => {
         try {
-            const result = await http.post("api/auth/login", values);
-            console.log("Auth saccess", result);
+            const result = await http.post<ILoginResult>("api/auth/login", values);
+            
+            const { access_token } = result.data;
+            const user = jwtDecode(access_token) as IUser;
+            console.log("Auth saccess", user);
+            localStorage.token = access_token;
+            http.defaults.headers.common['Authorization'] = `Bearer ${localStorage.token}`;
             setMessage("");
+            dispatch({
+                type: AuthUserActionType.LOGIN_USER, payload: {
+                    email: user.email,
+                    name: user.name,
+                    image: user.image
+                } as IUser
+            });
             navigator("/");
         }
-        catch (error) { 
+        catch (error) {
             setMessage("Не вірно вказані данні");
             console.log("error: " + error);
         }

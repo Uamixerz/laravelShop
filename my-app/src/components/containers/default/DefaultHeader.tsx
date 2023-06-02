@@ -1,7 +1,19 @@
 import { Link } from 'react-router-dom';
 import './DefaultHeader.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { AuthUserActionType, IAuthUser } from '../../auth/types';
+import http from '../../../http';
+import { APP_ENV } from '../../../env';
 
 const DefaultHeader = () => {
+  const { isAuth, user } = useSelector((store: any) => store.auth as IAuthUser);
+  const dispatch = useDispatch();
+  const LogOut = () => {
+    delete http.defaults.headers.common["Authorization"];
+    localStorage.removeItem("token");
+    dispatch({ type: AuthUserActionType.LOGOUT_USER });
+  }
+
   return (
     <>
 
@@ -36,17 +48,41 @@ const DefaultHeader = () => {
                 </li>
 
               </ul>
+
               <ul className='navbar-nav'>
-                <li className="nav-item">
-                  <Link className="nav-link active" aria-current="page" to="/login">
-                    Вхід
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link active" aria-current="page" to="/register">
-                    Реєстрація
-                  </Link>
-                </li>
+                {isAuth ? (
+                  <>
+                    <li className="nav-item">
+                      <img src={`${APP_ENV.BASE_URL}storage/uploads/${user?.image}`} alt="Фотка" width={50} />
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" aria-current="page" to="/profile">
+                        {user?.email}
+                      </Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" onClick={LogOut} aria-current="page" to="/">
+                        Вихід
+                      </Link>
+                    </li>
+                  </>
+                ) :
+                  (
+                    <>
+
+
+                      <li className="nav-item">
+                        <Link className="nav-link active" aria-current="page" to="/login">
+                          Вхід
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link className="nav-link active" aria-current="page" to="/register">
+                          Реєстрація
+                        </Link>
+                      </li>
+                    </>
+                  )}
               </ul>
             </div>
           </div>
