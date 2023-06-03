@@ -18,6 +18,7 @@ const LoginPage = () => {
         lastName: "",
         image: null
     };
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [message, setMessage] = useState<string>("");
 
@@ -36,6 +37,7 @@ const LoginPage = () => {
     });
 
     const onSubmitFormikData = async (values: IRegister) => {
+        setLoading(true);
         try {
             const result = await http.post("api/auth/register", values, {
                 headers: {
@@ -43,10 +45,12 @@ const LoginPage = () => {
                 },
             });
             console.log("Auth saccess", result);
+            setLoading(false);
             setMessage("");
             navigator("/");
         }
         catch (error) {
+            setLoading(false);
             setMessage("Не вірно вказані данні");
             console.log("error: " + error);
         }
@@ -165,7 +169,10 @@ const LoginPage = () => {
                     </div>
 
 
-                    <button type="submit" className="btn btn-primary btn-block mb-4 w-100">Sign in</button>
+                    <button type="submit" className="btn btn-primary btn-block mb-4 w-100">
+                        {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : <></>}
+                        &nbsp;
+                        Sign in</button>
                     {message && <div className="alert alert-danger text-center" role="alert">
                         {message}
                     </div>}

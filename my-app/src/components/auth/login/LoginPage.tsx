@@ -18,6 +18,7 @@ const LoginPage = () => {
         password: "",
     };
     const [message, setMessage] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
 
     const createSchema = yup.object({
         email: yup
@@ -28,9 +29,10 @@ const LoginPage = () => {
     });
 
     const onSubmitFormikData = async (values: ILogin) => {
+        setLoading(true);
         try {
             const result = await http.post<ILoginResult>("api/auth/login", values);
-            
+
             const { access_token } = result.data;
             const user = jwtDecode(access_token) as IUser;
             console.log("Auth saccess", user);
@@ -44,10 +46,12 @@ const LoginPage = () => {
                     image: user.image
                 } as IUser
             });
+            setLoading(false);
             navigator("/");
         }
         catch (error) {
             setMessage("Не вірно вказані данні");
+            setLoading(false);
             console.log("error: " + error);
         }
     };
@@ -96,7 +100,13 @@ const LoginPage = () => {
                     </div>
 
 
-                    <button type="submit" className="btn btn-primary btn-block mb-4 w-100">Sign in</button>
+                    <button type="submit" className="btn btn-primary btn-block mb-4 w-100">
+                        {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : <></>}
+                        &nbsp;
+                        Sign in
+                        &nbsp;
+                    </button>
+
                     {message && <div className="alert alert-danger text-center" role="alert">
                         {message}
                     </div>}
