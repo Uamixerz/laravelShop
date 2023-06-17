@@ -10,9 +10,65 @@ use Storage;
 use App\Models\User;
 class CategoryController extends Controller
 {
+    function image_resize($width, $height, $path, $inputName)
+    {
+        list($w,$h)=getimagesize($_FILES[$inputName]['tmp_name']);
+        $maxSize=0;
+        if(($w>$h)and ($width>$height))
+            $maxSize=$width;
+        else
+            $maxSize=$height;
+        $width=$maxSize;
+        $height=$maxSize;
+        $ration_orig=$w/$h;
+        if(1>$ration_orig)
+            $width=ceil($height*$ration_orig);
+        else
+            $height=ceil($width/$ration_orig);
+        //отримуємо файл
+        $imgString=file_get_contents($_FILES[$inputName]['tmp_name']);
+        $image=imagecreatefromstring($imgString);
+        //нове зображення
+        $tmp=imagecreatetruecolor($width,$height);
+        imagecopyresampled($tmp, $image,
+            0,0,
+            0,0,
+            $width, $height,
+            $w, $h);
+        //Зберегти зображення у файлову систему
+        switch($_FILES[$inputName]['type'])
+        {
+            case 'image/jpeg':
+                imagejpeg($tmp,$path,30);
+                break;
+            case 'image/png':
+                imagepng($tmp,$path,0);
+                break;
+            case 'image/gif':
+                imagegif($tmp, $path);
+                break;
+        }
+        return $path;
+        //очисчаємо память
+        imagedestroy($image);
+        imagedestroy($tmp);
+    }
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['index','edit','indexId','store']]);
+        $this->middleware('auth:api', ['except' => ['index', 'select']]);
+    }
+    /**
+     * @OA\Get(
+     *     tags={"Category"},
+     *     path="/api/category/select",
+     *   security={{ "bearerAuth": {} }},
+     *     @OA\Response(response="200", description="List Categories.")
+     * )
+     */
+    public function select()
+    {
+        $list = Category::all();
+        return response()->json($list,200);
     }
     /**
      * @OA\Get(
@@ -39,6 +95,7 @@ class CategoryController extends Controller
      * @OA\Post(
      *     tags={"Category"},
      *     path="/api/category",
+     *     security={{ "bearerAuth": {} }},
      *     @OA\RequestBody(
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
@@ -62,7 +119,14 @@ class CategoryController extends Controller
      *     ),
      *     @OA\Response(response="200", description="Add Category.")
      * )
+     * @OA\SecurityScheme(
+     *   type="http",
+     *   securityScheme="bearerAuth",
+     *   scheme="bearer",
+     *   bearerFormat="JWT"
+     * )
      */
+
     public function store(Request $request)
     {
         //отримуємо дані із запиту(name, image, description)
@@ -82,7 +146,15 @@ class CategoryController extends Controller
             return response()->json($validator->errors(), 400);
         }
         $filename = uniqid().'.'.$request->file("image")->getClientOriginalExtension();
-        Storage::disk('local')->put("public/uploads/".$filename,file_get_contents($request->file("image")));
+        $sizes = [50, 150, 300, 600, 1200];
+        $dir = $_SERVER['DOCUMENT_ROOT'];
+
+        foreach ($sizes as $size) {
+            $file_save = $dir."/uploads/".$size."_".$filename;
+            $this->image_resize($size,$size,$file_save, 'image');
+        }
+
+        //Storage::disk('local')->put("public/uploads/".$filename,file_get_contents($request->file("image")));
         $input["image"] = $filename;
         $category = Category::create($input);
         return response()->json($category);
@@ -91,6 +163,7 @@ class CategoryController extends Controller
      * @OA\Delete(
      *     tags={"Category"},
      *     path="/api/category/delete/{id}",
+     *     security={{ "bearerAuth": {} }},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -106,14 +179,14 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        $file = Category::findOrFail($id);
-        $fileName = "public/uploads/".$file["image"];
-        // Видалення файлу
-        if (Storage::exists($fileName)) {
-            Storage::delete($fileName);
+        $file =  Category::findOrFail($id);
+        $sizes = [50, 150, 300, 600, 1200];
+        foreach ($sizes as $size) {
+            $fileName = $_SERVER['DOCUMENT_ROOT'].'/uploads/'.$size.'_'.$file["image"];
+            if (is_file($fileName)) {
+                unlink($fileName);
+            }
         }
-
-        // Видалення елемента з бази даних
         $file->delete();
 
         // Опціонально поверніть відповідь або редиректіть користувача
@@ -126,6 +199,7 @@ class CategoryController extends Controller
      * @OA\Post(
      *     tags={"Category"},
      *     path="/api/category/edit/{id}",
+     *     security={{ "bearerAuth": {} }},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -165,7 +239,6 @@ class CategoryController extends Controller
     {
         //отримуємо дані із запиту(name, image, description)
         $input = $request->all();
-        $name = $request->input('name');
         $file = Category::findOrFail($id);
 
         $messages = array(
@@ -178,22 +251,21 @@ class CategoryController extends Controller
             'description' => 'required'
 
         ], $messages);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
-        if ($input['image'] != null && $input['image'] != $file->image)
-        {
-            $fileName = "public/uploads/" . $file->image;
-        // Видалення файлу
-        if (Storage::exists($fileName)) {
-            Storage::delete($fileName);
-        }
 
-
-        $filename = uniqid() . '.' . $request->file("image")->getClientOriginalExtension();
-        Storage::disk('local')->put("public/uploads/" . $filename, file_get_contents($request->file("image")));
-        $file->image = $filename;
+        $newFileName = uniqid().'.'.$request->file("image")->getClientOriginalExtension();
+        $sizes = [50, 150, 300, 600, 1200];
+        foreach ($sizes as $size) {
+            $fileName = $_SERVER['DOCUMENT_ROOT'].'/uploads/'.$size.'_'.$file["image"];
+            if (is_file($fileName)) {
+                unlink($fileName);
+            }
+            $this->image_resize($size,$size,$_SERVER['DOCUMENT_ROOT'].'/uploads/'.$size.'_'.$newFileName, 'image');
         }
+        $file->image = $newFileName;
         $file->name = $input['name'];
         $file->description = $input['description'];
         $file->save();

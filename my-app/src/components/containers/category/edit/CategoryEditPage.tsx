@@ -11,9 +11,9 @@ import http from '../../../../http';
 
 const CategoryEditPage = () => {
 
-   
 
-   
+
+    const defaultImage = `${APP_ENV.BASE_URL}/default_image.png`;
 
     const [allParams, SetAllParams] = useSearchParams();
 
@@ -80,7 +80,7 @@ const CategoryEditPage = () => {
 
     return (
         <>
-            
+
 
             <div>
                 <h1 className='text-center'>Редагування категорії</h1>
@@ -102,19 +102,32 @@ const CategoryEditPage = () => {
 
                     </div>
                     <div className="mb-3">
-                        <label htmlFor="image">Фотографія:</label>
+                        <label className="form-label" htmlFor="image">Фотографія:</label><br />
+                        <label htmlFor="image">
+                            <img
+                                src={
+                                    values.image == null
+                                        ? defaultImage
+                                        : `${APP_ENV.BASE_URL}/uploads/300_${values.image}`
+                                }
+                                alt="фото"
+                                width={150}
+                                style={{ cursor: "pointer" }}
+                            />
+                        </label>
                         <input
                             type="file"
                             id="image"
                             name="image"
-                            className={classNames("form-control", { "is-invalid": errors.image && touched.image })}
+                            className={classNames("form-control", { "is-invalid": errors.image && touched.image }, "d-none")}
 
                             onChange={onImageChangeHandler}
                             required
                         />
-                        {errors.image && touched.image && <div className="invalid-feedback">
-                            {errors.image}
-                        </div>}
+                        {errors.image && touched.image &&
+                            <div className="invalid-feedback">
+                                {errors.image}
+                            </div>}
                     </div>
                     <div className="mb-3">
                         <label htmlFor="description">Опис категорії:</label>
@@ -131,7 +144,7 @@ const CategoryEditPage = () => {
                         </div>}
                     </div>
 
-                    <button className="btn btn-primary"  type="submit">Редагувати категорію</button>
+                    <button className="btn btn-primary" type="submit">Редагувати категорію</button>
                 </form>
             </div>
         </>

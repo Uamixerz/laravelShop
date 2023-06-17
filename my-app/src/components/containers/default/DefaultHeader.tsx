@@ -46,7 +46,11 @@ const DefaultHeader = () => {
                     Створити категорію
                   </Link>
                 </li>
-
+                <li className="nav-item">
+                  <Link className="nav-link active" aria-current="page" to="/products/create">
+                    Створити товар
+                  </Link>
+                </li>
               </ul>
 
               <ul className='navbar-nav'>

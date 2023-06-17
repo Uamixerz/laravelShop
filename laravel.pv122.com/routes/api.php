@@ -22,6 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get("/category", [CategoryController::class, 'index']);
 
+Route::get("/category/select", [CategoryController::class, 'select']);
+
 Route::get("/category/{id}", [CategoryController::class, 'indexId']);
 
 Route::post("/category", [CategoryController::class, 'store']);
@@ -29,6 +31,7 @@ Route::post("/category", [CategoryController::class, 'store']);
 Route::delete('/category/delete/{id}', [CategoryController::class, 'destroy']);
 
 Route::post("/category/edit/{id}", [CategoryController::class, 'edit']);
+
 
 Route::group([
     'middleware' => 'api',
@@ -40,3 +43,6 @@ Route::group([
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
 });
+
+Route::post('/products', [\App\Http\Controllers\API\ProductController::class, 'store']);
+

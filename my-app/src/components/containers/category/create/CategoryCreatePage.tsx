@@ -15,7 +15,7 @@ const CategoryCreatePage = () => {
     description: ''
   }
   const navigate = useNavigate();
-
+  const defaultImage = `${APP_ENV.BASE_URL}/default_image.png`;
 
   const createSchema = yup.object({
     name: yup.string().required("Вкажіть назву"),
@@ -27,7 +27,8 @@ const CategoryCreatePage = () => {
     http.post('api/category', values, {
       headers: {
         "Content-Type": "multipart/form-data",
-      },})
+      },
+    })
       .then(resp => {
         console.log(values, resp);
         navigate("/");
@@ -72,19 +73,32 @@ const CategoryCreatePage = () => {
 
         </div>
         <div className="mb-3">
-          <label htmlFor="image">Фотографія:</label>
+          <label className="form-label" htmlFor="image">Фотографія:</label><br />
+          <label htmlFor="image">
+            <img
+              src={
+                values.image == null
+                  ? defaultImage
+                  : URL.createObjectURL(values.image)
+              }
+              alt="фото"
+              width={150}
+              style={{ cursor: "pointer" }}
+            />
+          </label>
           <input
             type="file"
             id="image"
             name="image"
-            className={classNames("form-control", { "is-invalid": errors.image && touched.image })}
-
+            className={classNames("form-control", { "is-invalid": errors.image && touched.image }, "d-none")}
+            
             onChange={onImageChangeHandler}
             required
           />
-          {errors.image && touched.image && <div className="invalid-feedback">
-            {errors.image}
-          </div>}
+          {errors.image && touched.image &&
+            <div className="invalid-feedback">
+              {errors.image}
+            </div>}
         </div>
         <div className="mb-3">
           <label htmlFor="description">Опис категорії:</label>

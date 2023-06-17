@@ -13,6 +13,24 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/category/select": {
+            "get": {
+                "tags": [
+                    "Category"
+                ],
+                "operationId": "0b70904deeb472ca6a58642792785d6b",
+                "responses": {
+                    "200": {
+                        "description": "List Categories."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/category": {
             "get": {
                 "tags": [
@@ -70,7 +88,12 @@
                     "200": {
                         "description": "Add Category."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/category/delete/{id}": {
@@ -95,7 +118,12 @@
                     "200": {
                         "description": "Delete Category."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/category/edit/{id}": {
@@ -144,7 +172,12 @@
                     "200": {
                         "description": "Update Category."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/login": {
@@ -211,7 +244,7 @@
                                     "phone",
                                     "image",
                                     "password",
-                                    "password_confirmation"
+                                    "confirmPassword"
                                 ],
                                 "properties": {
                                     "image": {
@@ -233,7 +266,7 @@
                                     "password": {
                                         "type": "string"
                                     },
-                                    "password_confirmation": {
+                                    "confirmPassword": {
                                         "type": "string"
                                     }
                                 },
@@ -301,6 +334,15 @@
                         "apiAuth": []
                     }
                 ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     }

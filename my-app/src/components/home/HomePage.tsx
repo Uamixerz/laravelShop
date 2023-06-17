@@ -17,6 +17,7 @@ const HomePage = () => {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [categoriesModal, SetCategoriesModal] = useState("");
 
   const [searchParams, SetSearchParams] = useSearchParams();
   const [search, SetSearch] = useState({
@@ -28,7 +29,8 @@ const HomePage = () => {
 
   const [deleteId, SetDeleteID] = useState(-1);
 
-  const ShowModal=(id:any)=>{
+  const ShowModal=(id:any, name:any)=>{
+    SetCategoriesModal(name);
     SetDeleteID(id);
     handleShow();
   }
@@ -297,10 +299,10 @@ const HomePage = () => {
   }
   const dataView = data.map(category =>
     <tr key={category.id}>
-      <th><img src={`${APP_ENV.BASE_URL}storage/uploads/${category.image}`} alt="Фотка" width={50} /></th>
+      <th><img src={`${APP_ENV.BASE_URL}uploads/150_${category.image}`} alt="Фотка" width={50} /></th>
       <td>{category.name}</td>
       <td>{category.description}</td>
-      <td><button onClick={() => ShowModal(category.id)}>Delete</button></td>
+      <td><button onClick={() => ShowModal(category.id, category.name)}>Delete</button></td>
       <td><Link to={`/categories/edit?id=${category.id}`}>Edit</Link></td>
     </tr >
   );
@@ -311,7 +313,7 @@ const HomePage = () => {
         <Modal.Header closeButton>
           <Modal.Title>Видалення</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Ви справді хочете видалити категорію ?</Modal.Body>
+        <Modal.Body>Ви справді хочете видалити категорію "{categoriesModal}" ?</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             No
